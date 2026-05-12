@@ -26,16 +26,22 @@ jobs:
 
       - run: bun install --frozen-lockfile
 
-      - run: bun run build
+      - name: Build (static prerender)
+        env:
+          NITRO_PRESET: static
+        run: bun run build
 
       - name: SPA fallback
-        run: cp dist/index.html dist/404.html
+        run: |
+          if [ -f .output/public/index.html ]; then
+            cp .output/public/index.html .output/public/404.html
+          fi
 
       - uses: actions/configure-pages@v5
 
       - uses: actions/upload-pages-artifact@v3
         with:
-          path: dist
+          path: .output/public
 
   deploy:
     needs: build

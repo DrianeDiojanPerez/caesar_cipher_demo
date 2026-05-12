@@ -31,34 +31,35 @@ export const Route = createFileRoute("/")({ component: App })
 type Mode = "encode" | "decode"
 
 function App() {
-  const [dark, setDark] = useState<boolean>(() => {
-    if (typeof window === "undefined") return false
-    const saved = localStorage.getItem("caesar.dark")
-    if (saved != null) return saved === "1"
-    return window.matchMedia("(prefers-color-scheme: dark)").matches
-  })
+  const [mounted, setMounted] = useState(false)
+  const [dark, setDark] = useState(false)
+  const [theme, setTheme] = useState<ThemeKey>(DEFAULT_THEME)
+  const [showOnboard, setShowOnboard] = useState(false)
 
   useEffect(() => {
+    const savedDark = localStorage.getItem("caesar.dark")
+    setDark(
+      savedDark != null
+        ? savedDark === "1"
+        : window.matchMedia("(prefers-color-scheme: dark)").matches,
+    )
+    const savedTheme = localStorage.getItem("caesar.theme")
+    if (savedTheme && savedTheme in THEMES) setTheme(savedTheme as ThemeKey)
+    setShowOnboard(!localStorage.getItem("caesar.onboarded"))
+    setMounted(true)
+  }, [])
+
+  useEffect(() => {
+    if (!mounted) return
     document.documentElement.classList.toggle("dark", dark)
     localStorage.setItem("caesar.dark", dark ? "1" : "0")
-  }, [dark])
-
-  const [theme, setTheme] = useState<ThemeKey>(() => {
-    if (typeof window === "undefined") return DEFAULT_THEME
-    const saved = localStorage.getItem("caesar.theme")
-    if (saved && saved in THEMES) return saved as ThemeKey
-    return DEFAULT_THEME
-  })
+  }, [dark, mounted])
 
   useEffect(() => {
+    if (!mounted) return
     applyTheme(theme, dark)
     localStorage.setItem("caesar.theme", theme)
-  }, [theme, dark])
-
-  const [showOnboard, setShowOnboard] = useState<boolean>(() => {
-    if (typeof window === "undefined") return false
-    return !localStorage.getItem("caesar.onboarded")
-  })
+  }, [theme, dark, mounted])
   const closeOnboard = () => {
     localStorage.setItem("caesar.onboarded", "1")
     setShowOnboard(false)
@@ -193,7 +194,13 @@ function App() {
         <section className="flex flex-col items-center gap-3">
           <Segmented<Mode>
             value={mode}
-            onChange={setMode}
+            onChange={(next) => {
+              setMode(next)
+              if (next === "decode") {
+                setText("")
+                setShift(0)
+              }
+            }}
             options={[
               { value: "encode", label: "Encode" },
               { value: "decode", label: "Decode" },

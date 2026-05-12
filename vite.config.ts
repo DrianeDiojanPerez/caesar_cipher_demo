@@ -1,15 +1,19 @@
 import { defineConfig } from "vite"
-import { TanStackRouterVite } from "@tanstack/router-plugin/vite"
+import { devtools } from "@tanstack/devtools-vite"
+import { tanstackStart } from "@tanstack/react-start/plugin/vite"
 import viteReact from "@vitejs/plugin-react"
 import viteTsConfigPaths from "vite-tsconfig-paths"
 import tailwindcss from "@tailwindcss/vite"
+import { nitro } from "nitro/vite"
 
-export default defineConfig({
-  base: "/caesar_cipher_demo/",
+export default defineConfig(({ command }) => ({
+  base: command === "build" ? "/caesar_cipher_demo/" : "/",
   plugins: [
+    devtools(),
+    nitro(),
     viteTsConfigPaths({ projects: ["./tsconfig.json"] }),
-    TanStackRouterVite({ target: "react", autoCodeSplitting: true }),
     tailwindcss(),
+    tanstackStart(),
     viteReact(),
   ],
-})
+}))
