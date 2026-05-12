@@ -156,7 +156,7 @@ export function CipherGame({ open, onOpenChange }: Props) {
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
         showCloseButton={false}
-        className="overflow-hidden p-0 gap-0 sm:max-w-xl"
+        className="max-h-[92vh] overflow-y-auto overscroll-contain p-0 gap-0 sm:max-w-xl"
         style={{
           background: "var(--cipher-card)",
           color: "var(--cipher-ink)",
@@ -387,7 +387,9 @@ export function CipherGame({ open, onOpenChange }: Props) {
                       </div>
                     </div>
                   ) : (
-                    <CipherDial shift={guess} setShift={setGuess} />
+                    <div className="mx-auto w-full max-w-[280px]">
+                      <CipherDial shift={guess} setShift={setGuess} />
+                    </div>
                   )}
                 </div>
 

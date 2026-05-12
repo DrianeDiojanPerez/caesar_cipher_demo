@@ -183,11 +183,8 @@ function Dial({
     <div className="flex w-full flex-col items-center">
       <div
         ref={wrapRef}
-        className={`dial-wrap relative aspect-square w-full max-w-[360px] min-w-[220px] select-none ${dragging ? "dragging cursor-grabbing" : "cursor-grab"}`}
-        style={{
-          width: "min(calc(100vw - 56px), 360px)",
-          touchAction: "none",
-        }}
+        className={`dial-wrap relative aspect-square w-full max-w-[360px] select-none ${dragging ? "dragging cursor-grabbing" : "cursor-grab"}`}
+        style={{ touchAction: "none" }}
         onPointerDown={onPointerDown}
         onPointerMove={onPointerMove}
         onPointerUp={onPointerUp}
