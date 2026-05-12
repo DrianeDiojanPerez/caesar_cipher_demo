@@ -16,21 +16,16 @@ export function Segmented<T extends string>({
     options.findIndex((o) => o.value === value),
   )
   return (
-    <div
-      className="relative inline-flex rounded-xl p-1"
-      style={{
-        background: "var(--cipher-accent-soft)",
-        border: "1px solid var(--cipher-line)",
-      }}
-    >
+    <div className="relative inline-flex rounded-lg p-0.5">
       <div
         aria-hidden
-        className="absolute top-1 bottom-1 rounded-lg shadow-md"
+        className="absolute top-0.5 bottom-0.5 rounded-md"
         style={{
-          width: `calc((100% - 8px) / ${options.length})`,
-          left: `calc(${idx} * (100% - 8px) / ${options.length} + 4px)`,
-          transition: "left 320ms cubic-bezier(0.34, 1.56, 0.64, 1)",
-          background: "var(--cipher-accent)",
+          width: `calc((100% - 4px) / ${options.length})`,
+          left: `calc(${idx} * (100% - 4px) / ${options.length} + 2px)`,
+          transition: "left 280ms cubic-bezier(0.34, 1.56, 0.64, 1)",
+          background: "var(--cipher-accent-soft)",
+          border: "1px solid var(--cipher-line)",
         }}
       />
       {options.map((opt) => {
@@ -40,9 +35,11 @@ export function Segmented<T extends string>({
             key={opt.value}
             onClick={() => onChange(opt.value)}
             variant="ghost"
-            className="relative z-10 h-9 rounded-lg px-5 text-sm font-semibold hover:bg-transparent dark:hover:bg-transparent"
+            className="relative z-10 h-8 rounded-md px-3 text-xs font-semibold hover:bg-transparent dark:hover:bg-transparent"
             style={{
-              color: active ? "#ffffff" : "var(--cipher-muted)",
+              color: active
+                ? "var(--cipher-accent)"
+                : "var(--cipher-muted)",
             }}
             onMouseEnter={(e) => {
               if (!active)

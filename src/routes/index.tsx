@@ -5,7 +5,6 @@ import {
   Copy,
   Moon,
   QrCode,
-  RotateCw,
   Sparkles,
   Sun,
   Trophy,
@@ -129,39 +128,27 @@ function App() {
 
       <header className="sticky top-3 z-30 mx-auto w-fit max-w-[calc(100%-1.5rem)] px-3 sm:top-4 sm:px-4">
         <div
-          className="flex h-14 items-center justify-between gap-3 rounded-full px-4 backdrop-blur-xl shadow-lg sm:px-5"
+          className="flex h-14 items-center gap-2 rounded-full px-3 backdrop-blur-xl shadow-lg"
           style={{
             background:
               "color-mix(in oklab, var(--cipher-bg) 70%, transparent)",
             border: "1px solid var(--cipher-line)",
           }}
         >
-          <div className="flex items-center gap-2.5">
-            <div
-              className="grid h-8 w-8 place-items-center rounded-lg shadow-sm"
-              style={{ background: "var(--cipher-accent)" }}
-            >
-              <RotateCw
-                className="h-4 w-4 text-white"
-                strokeWidth={2.2}
-              />
-            </div>
-            <div>
-              <div
-                className="caesar-caption text-sm leading-none font-bold tracking-tight"
-                style={{ color: "var(--cipher-ink)" }}
-              >
-                Caesar
-              </div>
-              <div
-                className="caesar-caption mt-0.5 text-[10px] leading-none"
-                style={{ color: "var(--cipher-muted)" }}
-              >
-                rotary cipher
-              </div>
-            </div>
-          </div>
-          <div className="flex items-center gap-1">
+            <Segmented<Mode>
+              value={mode}
+              onChange={(next) => {
+                setMode(next)
+                if (next === "decode") {
+                  setText("")
+                  setShift(0)
+                }
+              }}
+              options={[
+                { value: "encode", label: "Encode" },
+                { value: "decode", label: "Decode" },
+              ]}
+            />
             <Button
               onClick={() => setGameOpen(true)}
               size="sm"
@@ -196,26 +183,11 @@ function App() {
                 style={{ color: "var(--cipher-accent-2)" }}
               />
             </Button>
-          </div>
         </div>
       </header>
 
       <main className="relative z-10 mx-auto max-w-2xl space-y-7 px-5 py-8 sm:px-6 sm:py-10">
-        <section className="flex flex-col items-center gap-3">
-          <Segmented<Mode>
-            value={mode}
-            onChange={(next) => {
-              setMode(next)
-              if (next === "decode") {
-                setText("")
-                setShift(0)
-              }
-            }}
-            options={[
-              { value: "encode", label: "Encode" },
-              { value: "decode", label: "Decode" },
-            ]}
-          />
+        <section className="flex flex-col items-center">
           <p
             className="caesar-caption text-xs tracking-[0.12em]"
             style={{ color: "var(--cipher-muted)" }}
