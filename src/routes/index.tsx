@@ -148,13 +148,13 @@ function App() {
             </div>
             <div>
               <div
-                className="text-sm leading-none font-bold tracking-tight"
+                className="caesar-caption text-sm leading-none font-bold tracking-tight"
                 style={{ color: "var(--cipher-ink)" }}
               >
                 Caesar
               </div>
               <div
-                className="mt-0.5 font-mono text-[10px] leading-none"
+                className="caesar-caption mt-0.5 text-[10px] leading-none"
                 style={{ color: "var(--cipher-muted)" }}
               >
                 rotary cipher
@@ -231,13 +231,13 @@ function App() {
         <section className="space-y-2">
           <div className="flex items-center justify-between">
             <label
-              className="font-mono text-xs tracking-wider uppercase"
+              className="caesar-caption text-xs tracking-wider uppercase"
               style={{ color: "var(--cipher-muted)" }}
             >
               {mode === "encode" ? "Plaintext" : "Ciphertext"}
             </label>
             <span
-              className="font-mono text-[10px]"
+              className="caesar-caption text-[10px]"
               style={{ color: "var(--cipher-muted)" }}
             >
               {text.length} chars
@@ -266,7 +266,7 @@ function App() {
         <section className="space-y-2">
           <div className="flex items-center justify-between">
             <label
-              className="font-mono text-xs tracking-wider uppercase"
+              className="caesar-caption text-xs tracking-wider uppercase"
               style={{ color: "var(--cipher-muted)" }}
             >
               {mode === "encode" ? "Ciphertext" : "Plaintext"}
@@ -333,14 +333,6 @@ function App() {
           />
         </section>
 
-        <section className="pt-4 pb-2 text-center">
-          <p
-            className="caesar-caption text-[11px] tracking-wide"
-            style={{ color: "var(--cipher-muted)" }}
-          >
-            shift 0 = identity · 13 = ROT13 · 25 = inverse-1
-          </p>
-        </section>
       </main>
 
       <Onboarding

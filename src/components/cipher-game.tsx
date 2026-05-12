@@ -58,7 +58,7 @@ export function CipherGame({ open, onOpenChange }: Props) {
   const [streak, setStreak] = useState(0)
   const [best, setBest] = useState(0)
   const [lastDelta, setLastDelta] = useState<number | null>(null)
-  const [inputMode, setInputModeState] = useState<InputMode>("slider")
+  const [inputMode, setInputModeState] = useState<InputMode>("dial")
   const tickRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
   useEffect(() => {
