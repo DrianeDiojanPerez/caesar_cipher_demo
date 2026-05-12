@@ -127,15 +127,15 @@ function App() {
         <div className="blob b3" />
       </div>
 
-      <header
-        className="sticky top-0 z-30 backdrop-blur-xl"
-        style={{
-          background:
-            "color-mix(in oklab, var(--cipher-bg) 75%, transparent)",
-          borderBottom: "1px solid var(--cipher-line)",
-        }}
-      >
-        <div className="mx-auto flex h-14 max-w-2xl items-center justify-between px-5 sm:px-6">
+      <header className="sticky top-3 z-30 mx-auto w-fit max-w-[calc(100%-1.5rem)] px-3 sm:top-4 sm:px-4">
+        <div
+          className="flex h-14 items-center justify-between gap-3 rounded-full px-4 backdrop-blur-xl shadow-lg sm:px-5"
+          style={{
+            background:
+              "color-mix(in oklab, var(--cipher-bg) 70%, transparent)",
+            border: "1px solid var(--cipher-line)",
+          }}
+        >
           <div className="flex items-center gap-2.5">
             <div
               className="grid h-8 w-8 place-items-center rounded-lg shadow-sm"

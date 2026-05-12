@@ -1,6 +1,13 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { AnimatePresence, motion } from "motion/react"
-import { Clock, Flame, Play, RotateCcw, Trophy } from "lucide-react"
+import {
+  Clock,
+  Flame,
+  Play,
+  RotateCcw,
+  SlidersHorizontal,
+  Trophy,
+} from "lucide-react"
 import { caesar } from "@/lib/caesar"
 import { ScrambleText } from "./scramble-text"
 import {
@@ -9,7 +16,6 @@ import {
 } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { CipherDial } from "./cipher-dial"
-import { Segmented } from "./segmented"
 
 type InputMode = "dial" | "slider"
 
@@ -256,6 +262,85 @@ export function CipherGame({ open, onOpenChange }: Props) {
                     className="mb-2 font-mono text-[10px] tracking-[0.15em]"
                     style={{ color: "var(--cipher-muted)" }}
                   >
+                    INPUT
+                  </div>
+                  <div className="grid grid-cols-2 gap-2">
+                    {(
+                      [
+                        {
+                          value: "dial",
+                          label: "Dial",
+                          hint: "spin to guess",
+                          Icon: Clock,
+                        },
+                        {
+                          value: "slider",
+                          label: "Slider",
+                          hint: "drag to guess",
+                          Icon: SlidersHorizontal,
+                        },
+                      ] as Array<{
+                        value: InputMode
+                        label: string
+                        hint: string
+                        Icon: typeof Clock
+                      }>
+                    ).map((opt) => {
+                      const active = inputMode === opt.value
+                      const Icon = opt.Icon
+                      return (
+                        <Button
+                          key={opt.value}
+                          onClick={() => setInputMode(opt.value)}
+                          variant="ghost"
+                          className="h-auto items-center gap-2.5 rounded-xl p-3 text-left"
+                          style={{
+                            background: active
+                              ? "var(--cipher-accent-soft)"
+                              : "transparent",
+                            border: `1px solid ${
+                              active
+                                ? "var(--cipher-accent)"
+                                : "var(--cipher-line)"
+                            }`,
+                          }}
+                        >
+                          <Icon
+                            className="h-4 w-4 shrink-0"
+                            style={{
+                              color: active
+                                ? "var(--cipher-accent)"
+                                : "var(--cipher-muted)",
+                            }}
+                          />
+                          <div className="flex flex-col items-start gap-0">
+                            <div
+                              className="text-sm font-semibold"
+                              style={{
+                                color: active
+                                  ? "var(--cipher-accent)"
+                                  : "var(--cipher-ink)",
+                              }}
+                            >
+                              {opt.label}
+                            </div>
+                            <div
+                              className="mt-0.5 font-mono text-[10px]"
+                              style={{ color: "var(--cipher-muted)" }}
+                            >
+                              {opt.hint}
+                            </div>
+                          </div>
+                        </Button>
+                      )
+                    })}
+                  </div>
+                </div>
+                <div>
+                  <div
+                    className="mb-2 font-mono text-[10px] tracking-[0.15em]"
+                    style={{ color: "var(--cipher-muted)" }}
+                  >
                     DIFFICULTY
                   </div>
                   <div className="grid grid-cols-3 gap-2">
@@ -351,47 +436,35 @@ export function CipherGame({ open, onOpenChange }: Props) {
                   </div>
                 </div>
 
-                <div className="space-y-3">
-                  <div className="flex justify-center">
-                    <Segmented<InputMode>
-                      value={inputMode}
-                      onChange={setInputMode}
-                      options={[
-                        { value: "slider", label: "Slider" },
-                        { value: "dial", label: "Dial" },
-                      ]}
+                {inputMode === "slider" ? (
+                  <div className="space-y-2">
+                    <input
+                      type="range"
+                      min={0}
+                      max={25}
+                      value={guess}
+                      onChange={(e) =>
+                        setGuess(parseInt(e.target.value, 10))
+                      }
+                      className="cipher-range w-full"
                     />
+                    <div
+                      className="flex justify-between font-mono text-[10px]"
+                      style={{ color: "var(--cipher-muted)" }}
+                    >
+                      <span>0</span>
+                      <span>5</span>
+                      <span>10</span>
+                      <span>15</span>
+                      <span>20</span>
+                      <span>25</span>
+                    </div>
                   </div>
-                  {inputMode === "slider" ? (
-                    <div className="space-y-2">
-                      <input
-                        type="range"
-                        min={0}
-                        max={25}
-                        value={guess}
-                        onChange={(e) =>
-                          setGuess(parseInt(e.target.value, 10))
-                        }
-                        className="cipher-range w-full"
-                      />
-                      <div
-                        className="flex justify-between font-mono text-[10px]"
-                        style={{ color: "var(--cipher-muted)" }}
-                      >
-                        <span>0</span>
-                        <span>5</span>
-                        <span>10</span>
-                        <span>15</span>
-                        <span>20</span>
-                        <span>25</span>
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="mx-auto w-full max-w-[280px]">
-                      <CipherDial shift={guess} setShift={setGuess} />
-                    </div>
-                  )}
-                </div>
+                ) : (
+                  <div className="mx-auto w-full max-w-[280px]">
+                    <CipherDial shift={guess} setShift={setGuess} />
+                  </div>
+                )}
 
                 <div
                   className="rounded-xl p-4"
