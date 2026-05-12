@@ -6,14 +6,22 @@ import viteTsConfigPaths from "vite-tsconfig-paths"
 import tailwindcss from "@tailwindcss/vite"
 import { nitro } from "nitro/vite"
 
-export default defineConfig(({ command }) => ({
-  base: command === "build" ? "/caesar_cipher_demo/" : "/",
-  plugins: [
-    devtools(),
-    nitro(),
-    viteTsConfigPaths({ projects: ["./tsconfig.json"] }),
-    tailwindcss(),
-    tanstackStart(),
-    viteReact(),
-  ],
-}))
+const BASE = "/caesar_cipher_demo/"
+
+export default defineConfig(({ command }) => {
+  const isBuild = command === "build"
+  return {
+    base: isBuild ? BASE : "/",
+    plugins: [
+      devtools(),
+      nitro(),
+      viteTsConfigPaths({ projects: ["./tsconfig.json"] }),
+      tailwindcss(),
+      tanstackStart({
+        router: isBuild ? { basepath: BASE } : undefined,
+        spa: isBuild ? { enabled: true, maskPath: BASE } : undefined,
+      }),
+      viteReact(),
+    ],
+  }
+})

@@ -26,16 +26,12 @@ jobs:
 
       - run: bun install --frozen-lockfile
 
-      - name: Build (static prerender)
-        env:
-          NITRO_PRESET: static
-        run: bun run build
+      - run: bun run build
 
-      - name: SPA fallback
+      - name: Promote shell to index + 404
         run: |
-          if [ -f .output/public/index.html ]; then
-            cp .output/public/index.html .output/public/404.html
-          fi
+          cp .output/public/_shell.html .output/public/index.html
+          cp .output/public/_shell.html .output/public/404.html
 
       - uses: actions/configure-pages@v5
 
