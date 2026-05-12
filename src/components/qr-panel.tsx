@@ -1,17 +1,28 @@
-import { useEffect, useMemo, useState } from "react"
-import { motion } from "motion/react"
+import { useEffect, useMemo, useRef, useState } from "react"
+import { AnimatePresence, motion } from "motion/react"
 import { QRCodeCanvas } from "qrcode.react"
-import { Check, Copy, QrCode, X } from "lucide-react"
+import { Check, ChevronDown, Copy, Download, QrCode } from "lucide-react"
+
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
+import { Button } from "@/components/ui/button"
 
 type Props = {
   shift: number
   output: string
-  onClose: () => void
+  open: boolean
+  onOpenChange: (open: boolean) => void
 }
 
-export function QRPanel({ shift, output, onClose }: Props) {
+export function QRPanel({ shift, output, open, onOpenChange }: Props) {
   const [copiedLink, setCopiedLink] = useState(false)
   const [isDark, setIsDark] = useState(false)
+  const [showDetails, setShowDetails] = useState(false)
+  const canvasRef = useRef<HTMLCanvasElement | null>(null)
 
   useEffect(() => {
     const update = () =>
@@ -30,10 +41,9 @@ export function QRPanel({ shift, output, onClose }: Props) {
     const base = location.origin + location.pathname
     const params = new URLSearchParams()
     params.set("c", output)
-    params.set("s", String(shift))
     params.set("m", "decode")
     return `${base}?${params.toString()}`
-  }, [output, shift])
+  }, [output])
 
   const onCopyLink = async () => {
     try {
@@ -45,55 +55,48 @@ export function QRPanel({ shift, output, onClose }: Props) {
     }
   }
 
+  const onDownload = () => {
+    const canvas = canvasRef.current
+    if (!canvas) return
+    const a = document.createElement("a")
+    a.href = canvas.toDataURL("image/png")
+    a.download = `caesar-cipher-shift-${shift}.png`
+    a.click()
+  }
+
   return (
-    <motion.div
-      initial={{ opacity: 0, height: 0 }}
-      animate={{ opacity: 1, height: "auto" }}
-      exit={{ opacity: 0, height: 0 }}
-      transition={{ type: "spring", stiffness: 240, damping: 28 }}
-      className="overflow-hidden"
-    >
-      <div
-        className="mt-4 overflow-hidden rounded-xl"
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent
+        className="gap-4 p-5"
         style={{
-          border: "1px solid var(--cipher-line)",
           background: "var(--cipher-card)",
+          color: "var(--cipher-ink)",
+          borderColor: "var(--cipher-line)",
         }}
       >
-        <div
-          className="flex items-center justify-between px-5 py-3"
-          style={{ borderBottom: "1px solid var(--cipher-line)" }}
-        >
-          <div className="flex items-center gap-2">
+        <DialogHeader>
+          <DialogTitle
+            className="flex items-center gap-2 text-sm"
+            style={{ color: "var(--cipher-ink)" }}
+          >
             <QrCode
               className="h-4 w-4"
               style={{ color: "var(--cipher-accent)" }}
             />
-            <span
-              className="text-sm font-medium"
-              style={{ color: "var(--cipher-ink)" }}
-            >
-              Shareable QR
-            </span>
-          </div>
-          <button
-            onClick={onClose}
-            className="transition"
-            style={{ color: "var(--cipher-muted)" }}
-            aria-label="Close QR panel"
-          >
-            <X className="h-4 w-4" />
-          </button>
-        </div>
-        <div className="grid items-center gap-5 p-5 sm:grid-cols-[auto_1fr]">
+            Shareable QR
+          </DialogTitle>
+        </DialogHeader>
+
+        <div className="flex flex-col items-center gap-4">
           <div
-            className="justify-self-center rounded-lg p-3"
+            className="rounded-lg p-3"
             style={{
               background: "var(--cipher-card)",
               border: "1px solid var(--cipher-line)",
             }}
           >
             <QRCodeCanvas
+              ref={canvasRef}
               value={url}
               size={220}
               fgColor={isDark ? "#f5f0ff" : "#1a1623"}
@@ -101,7 +104,8 @@ export function QRPanel({ shift, output, onClose }: Props) {
               level="M"
             />
           </div>
-          <div className="min-w-0">
+
+          <div className="w-full min-w-0">
             <p
               className="mb-1.5 font-mono text-xs tracking-wider uppercase"
               style={{ color: "var(--cipher-muted)" }}
@@ -118,25 +122,14 @@ export function QRPanel({ shift, output, onClose }: Props) {
             >
               {url}
             </div>
-            <p
-              className="mt-3 text-xs leading-relaxed"
-              style={{ color: "var(--cipher-muted)" }}
-            >
-              Scanning opens this app pre-loaded in decode mode with shift{" "}
-              <span
-                className="font-mono"
-                style={{ color: "var(--cipher-accent)" }}
-              >
-                {shift}
-              </span>
-              .
-            </p>
-            <div className="mt-3 flex gap-2">
-              <button
+
+            <div className="mt-3 flex flex-wrap items-center gap-2">
+              <Button
                 onClick={onCopyLink}
-                className="flex h-8 items-center gap-1.5 rounded-md px-3 text-xs font-medium transition"
+                variant="outline"
+                size="sm"
                 style={{
-                  border: "1px solid var(--cipher-line)",
+                  borderColor: "var(--cipher-line)",
                   background: "var(--cipher-card)",
                   color: "var(--cipher-ink)",
                 }}
@@ -146,7 +139,7 @@ export function QRPanel({ shift, output, onClose }: Props) {
                     <Check
                       className="h-3.5 w-3.5"
                       style={{ color: "var(--cipher-accent)" }}
-                    />{" "}
+                    />
                     Copied
                   </>
                 ) : (
@@ -154,11 +147,59 @@ export function QRPanel({ shift, output, onClose }: Props) {
                     <Copy className="h-3.5 w-3.5" /> Copy link
                   </>
                 )}
-              </button>
+              </Button>
+              <Button
+                onClick={onDownload}
+                variant="outline"
+                size="sm"
+                style={{
+                  borderColor: "var(--cipher-line)",
+                  background: "var(--cipher-card)",
+                  color: "var(--cipher-ink)",
+                }}
+              >
+                <Download className="h-3.5 w-3.5" /> Download
+              </Button>
+              <Button
+                onClick={() => setShowDetails((s) => !s)}
+                variant="ghost"
+                size="sm"
+                aria-expanded={showDetails}
+                style={{ color: "var(--cipher-muted)" }}
+              >
+                <ChevronDown
+                  className={`h-3.5 w-3.5 transition-transform ${showDetails ? "rotate-180" : ""}`}
+                />
+                {showDetails ? "Hide details" : "Show details"}
+              </Button>
             </div>
+
+            <AnimatePresence initial={false}>
+              {showDetails && (
+                <motion.p
+                  initial={{ opacity: 0, height: 0, marginTop: 0 }}
+                  animate={{ opacity: 1, height: "auto", marginTop: 12 }}
+                  exit={{ opacity: 0, height: 0, marginTop: 0 }}
+                  transition={{ duration: 0.18 }}
+                  className="overflow-hidden text-xs leading-relaxed"
+                  style={{ color: "var(--cipher-muted)" }}
+                >
+                  Scanning opens this app pre-loaded in decode mode. The dial
+                  starts at 0 — the recipient spins to find the shift you used
+                  (shift{" "}
+                  <span
+                    className="font-mono"
+                    style={{ color: "var(--cipher-accent)" }}
+                  >
+                    {shift}
+                  </span>
+                  ).
+                </motion.p>
+              )}
+            </AnimatePresence>
           </div>
         </div>
-      </div>
-    </motion.div>
+      </DialogContent>
+    </Dialog>
   )
 }

@@ -1,8 +1,17 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { AnimatePresence, motion } from "motion/react"
-import { Clock, Flame, Play, RotateCcw, Trophy, X } from "lucide-react"
+import { Clock, Flame, Play, RotateCcw, Trophy } from "lucide-react"
 import { caesar } from "@/lib/caesar"
 import { ScrambleText } from "./scramble-text"
+import {
+  Dialog,
+  DialogContent,
+} from "@/components/ui/dialog"
+import { Button } from "@/components/ui/button"
+import { CipherDial } from "./cipher-dial"
+import { Segmented } from "./segmented"
+
+type InputMode = "dial" | "slider"
 
 const GAME_PHRASES = [
   "THE QUICK BROWN FOX JUMPS OVER THE LAZY DOG",
@@ -33,24 +42,37 @@ const DIFFICULTIES: Record<
 type Puzzle = { phrase: string; cipher: string; trueShift: number }
 type Phase = "idle" | "playing" | "won" | "lost"
 
-export function CipherGame({ onClose }: { onClose: () => void }) {
+type Props = {
+  open: boolean
+  onOpenChange: (open: boolean) => void
+}
+
+export function CipherGame({ open, onOpenChange }: Props) {
   const [difficulty, setDifficulty] = useState<Difficulty>("medium")
   const [phase, setPhase] = useState<Phase>("idle")
   const [round, setRound] = useState(0)
   const [puzzle, setPuzzle] = useState<Puzzle | null>(null)
   const [guess, setGuess] = useState(0)
   const [timeLeft, setTimeLeft] = useState(0)
-  const [score, setScore] = useState(() =>
-    parseInt(localStorage.getItem("caesar.score") || "0", 10),
-  )
-  const [streak, setStreak] = useState(() =>
-    parseInt(localStorage.getItem("caesar.streak") || "0", 10),
-  )
-  const [best, setBest] = useState(() =>
-    parseInt(localStorage.getItem("caesar.best") || "0", 10),
-  )
+  const [score, setScore] = useState(0)
+  const [streak, setStreak] = useState(0)
+  const [best, setBest] = useState(0)
   const [lastDelta, setLastDelta] = useState<number | null>(null)
+  const [inputMode, setInputModeState] = useState<InputMode>("slider")
   const tickRef = useRef<ReturnType<typeof setInterval> | null>(null)
+
+  useEffect(() => {
+    setScore(parseInt(localStorage.getItem("caesar.score") || "0", 10))
+    setStreak(parseInt(localStorage.getItem("caesar.streak") || "0", 10))
+    setBest(parseInt(localStorage.getItem("caesar.best") || "0", 10))
+    const saved = localStorage.getItem("caesar.game.input")
+    if (saved === "dial" || saved === "slider") setInputModeState(saved)
+  }, [])
+
+  const setInputMode = (mode: InputMode) => {
+    setInputModeState(mode)
+    localStorage.setItem("caesar.game.input", mode)
+  }
 
   const cfg = DIFFICULTIES[difficulty]
 
@@ -131,26 +153,14 @@ export function CipherGame({ onClose }: { onClose: () => void }) {
         : "var(--cipher-accent)"
 
   return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      className="fixed inset-0 z-40 flex items-center justify-center p-3 sm:p-6"
-    >
-      <div
-        className="absolute inset-0 backdrop-blur-md"
-        style={{ background: "rgba(0,0,0,0.45)" }}
-        onClick={onClose}
-      />
-      <motion.div
-        initial={{ opacity: 0, y: 12, scale: 0.98 }}
-        animate={{ opacity: 1, y: 0, scale: 1 }}
-        exit={{ opacity: 0, y: 12, scale: 0.98 }}
-        transition={{ type: "spring", stiffness: 280, damping: 26 }}
-        className="relative w-full max-w-xl overflow-hidden rounded-2xl shadow-2xl"
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent
+        showCloseButton={false}
+        className="overflow-hidden p-0 gap-0 sm:max-w-xl"
         style={{
           background: "var(--cipher-card)",
-          border: "1px solid var(--cipher-line)",
+          color: "var(--cipher-ink)",
+          borderColor: "var(--cipher-line)",
         }}
       >
         <div
@@ -161,43 +171,61 @@ export function CipherGame({ onClose }: { onClose: () => void }) {
             <Trophy className="h-5 w-5" />
             <div>
               <div className="font-bold tracking-tight">Crack the Cipher</div>
-              <div className="font-mono text-[11px] opacity-80">
+              <div className="caesar-caption text-[11px] opacity-80">
                 guess the shift to decode
               </div>
             </div>
           </div>
-          <button
-            onClick={onClose}
-            className="grid h-8 w-8 place-items-center rounded-md text-white/90 transition hover:bg-white/20"
+          <Button
+            onClick={() => onOpenChange(false)}
+            variant="ghost"
+            size="icon-sm"
             aria-label="Close game"
+            className="text-white hover:bg-white/20 hover:text-white"
           >
-            <X className="h-4 w-4" />
-          </button>
+            <span className="sr-only">Close</span>
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="M18 6 6 18" />
+              <path d="m6 6 12 12" />
+            </svg>
+          </Button>
         </div>
 
-        <div
-          className="grid grid-cols-3 divide-x"
-          style={{
-            borderBottom: "1px solid var(--cipher-line)",
-            borderColor: "var(--cipher-line)",
-          }}
-        >
-          <Stat label="SCORE" value={score} color="var(--cipher-accent)" />
-          <Stat
-            label="STREAK"
-            value={streak}
-            icon={
-              streak > 0 ? (
-                <Flame
-                  className="h-3.5 w-3.5"
-                  style={{ color: "var(--cipher-accent-2)" }}
-                />
-              ) : null
-            }
-            color="var(--cipher-accent-2)"
-          />
-          <Stat label="BEST" value={best} color="var(--cipher-accent-3)" />
-        </div>
+        {phase !== "playing" && (
+          <div
+            className="grid grid-cols-3 divide-x"
+            style={{
+              borderBottom: "1px solid var(--cipher-line)",
+              borderColor: "var(--cipher-line)",
+            }}
+          >
+            <Stat label="SCORE" value={score} color="var(--cipher-accent)" />
+            <Stat
+              label="STREAK"
+              value={streak}
+              icon={
+                streak > 0 ? (
+                  <Flame
+                    className="h-3.5 w-3.5"
+                    style={{ color: "var(--cipher-accent-2)" }}
+                  />
+                ) : null
+              }
+              color="var(--cipher-accent-2)"
+            />
+            <Stat label="BEST" value={best} color="var(--cipher-accent-3)" />
+          </div>
+        )}
 
         <div className="p-5 sm:p-6">
           <AnimatePresence mode="wait">
@@ -232,10 +260,11 @@ export function CipherGame({ onClose }: { onClose: () => void }) {
                   </div>
                   <div className="grid grid-cols-3 gap-2">
                     {(Object.entries(DIFFICULTIES) as Array<[Difficulty, typeof DIFFICULTIES[Difficulty]]>).map(([k, v]) => (
-                      <button
+                      <Button
                         key={k}
                         onClick={() => setDifficulty(k)}
-                        className="relative rounded-xl p-3 text-left transition-all"
+                        variant="ghost"
+                        className="h-auto flex-col items-start gap-0 rounded-xl p-3 text-left"
                         style={{
                           background:
                             difficulty === k
@@ -265,18 +294,18 @@ export function CipherGame({ onClose }: { onClose: () => void }) {
                         >
                           {v.time}s · {v.scoreBase}pt
                         </div>
-                      </button>
+                      </Button>
                     ))}
                   </div>
                 </div>
-                <button
+                <Button
                   onClick={newRound}
-                  className="flex h-12 w-full items-center justify-center gap-2 rounded-xl font-semibold text-white transition-colors"
+                  className="h-12 w-full rounded-xl font-semibold text-white"
                   style={{ background: "var(--cipher-accent)" }}
                 >
                   <Play className="h-4 w-4" />
                   Start round
-                </button>
+                </Button>
               </motion.div>
             )}
 
@@ -320,6 +349,46 @@ export function CipherGame({ onClose }: { onClose: () => void }) {
                       style={{ background: timeColor }}
                     />
                   </div>
+                </div>
+
+                <div className="space-y-3">
+                  <div className="flex justify-center">
+                    <Segmented<InputMode>
+                      value={inputMode}
+                      onChange={setInputMode}
+                      options={[
+                        { value: "slider", label: "Slider" },
+                        { value: "dial", label: "Dial" },
+                      ]}
+                    />
+                  </div>
+                  {inputMode === "slider" ? (
+                    <div className="space-y-2">
+                      <input
+                        type="range"
+                        min={0}
+                        max={25}
+                        value={guess}
+                        onChange={(e) =>
+                          setGuess(parseInt(e.target.value, 10))
+                        }
+                        className="cipher-range w-full"
+                      />
+                      <div
+                        className="flex justify-between font-mono text-[10px]"
+                        style={{ color: "var(--cipher-muted)" }}
+                      >
+                        <span>0</span>
+                        <span>5</span>
+                        <span>10</span>
+                        <span>15</span>
+                        <span>20</span>
+                        <span>25</span>
+                      </div>
+                    </div>
+                  ) : (
+                    <CipherDial shift={guess} setShift={setGuess} />
+                  )}
                 </div>
 
                 <div
@@ -366,47 +435,26 @@ export function CipherGame({ onClose }: { onClose: () => void }) {
                   </div>
                 </div>
 
-                <div className="space-y-2">
-                  <input
-                    type="range"
-                    min={0}
-                    max={25}
-                    value={guess}
-                    onChange={(e) => setGuess(parseInt(e.target.value, 10))}
-                    className="cipher-range w-full"
-                  />
-                  <div
-                    className="flex justify-between font-mono text-[10px]"
-                    style={{ color: "var(--cipher-muted)" }}
-                  >
-                    <span>0</span>
-                    <span>5</span>
-                    <span>10</span>
-                    <span>15</span>
-                    <span>20</span>
-                    <span>25</span>
-                  </div>
-                </div>
-
                 <div className="flex gap-2">
-                  <button
+                  <Button
                     onClick={reset}
-                    className="h-11 rounded-xl px-4 text-sm font-medium transition"
+                    variant="outline"
+                    className="h-11 rounded-xl px-4 text-sm font-medium"
                     style={{
-                      border: "1px solid var(--cipher-line)",
+                      borderColor: "var(--cipher-line)",
                       color: "var(--cipher-muted)",
                       background: "transparent",
                     }}
                   >
                     Quit
-                  </button>
-                  <button
+                  </Button>
+                  <Button
                     onClick={submit}
-                    className="h-11 flex-1 rounded-xl font-semibold text-white transition-colors"
+                    className="h-11 flex-1 rounded-xl font-semibold text-white"
                     style={{ background: "var(--cipher-accent)" }}
                   >
                     Submit guess
-                  </button>
+                  </Button>
                 </div>
               </motion.div>
             )}
@@ -469,24 +517,25 @@ export function CipherGame({ onClose }: { onClose: () => void }) {
                   {puzzle.phrase}
                 </div>
                 <div className="flex gap-2">
-                  <button
+                  <Button
                     onClick={reset}
-                    className="h-11 rounded-xl px-4 text-sm font-medium transition"
+                    variant="outline"
+                    className="h-11 rounded-xl px-4 text-sm font-medium"
                     style={{
-                      border: "1px solid var(--cipher-line)",
+                      borderColor: "var(--cipher-line)",
                       color: "var(--cipher-muted)",
                     }}
                   >
                     Done
-                  </button>
-                  <button
+                  </Button>
+                  <Button
                     onClick={newRound}
-                    className="flex h-11 flex-1 items-center justify-center gap-2 rounded-xl font-semibold text-white transition-colors"
+                    className="h-11 flex-1 rounded-xl font-semibold text-white"
                     style={{ background: "var(--cipher-accent)" }}
                   >
                     <RotateCcw className="h-4 w-4" />
                     Next round
-                  </button>
+                  </Button>
                 </div>
               </motion.div>
             )}
@@ -549,31 +598,32 @@ export function CipherGame({ onClose }: { onClose: () => void }) {
                   {puzzle.phrase}
                 </div>
                 <div className="flex gap-2">
-                  <button
+                  <Button
                     onClick={reset}
-                    className="h-11 rounded-xl px-4 text-sm font-medium transition"
+                    variant="outline"
+                    className="h-11 rounded-xl px-4 text-sm font-medium"
                     style={{
-                      border: "1px solid var(--cipher-line)",
+                      borderColor: "var(--cipher-line)",
                       color: "var(--cipher-muted)",
                     }}
                   >
                     Done
-                  </button>
-                  <button
+                  </Button>
+                  <Button
                     onClick={newRound}
-                    className="flex h-11 flex-1 items-center justify-center gap-2 rounded-xl font-semibold text-white transition-colors"
+                    className="h-11 flex-1 rounded-xl font-semibold text-white"
                     style={{ background: "var(--cipher-accent)" }}
                   >
                     <RotateCcw className="h-4 w-4" />
                     Try again
-                  </button>
+                  </Button>
                 </div>
               </motion.div>
             )}
           </AnimatePresence>
         </div>
-      </motion.div>
-    </motion.div>
+      </DialogContent>
+    </Dialog>
   )
 }
 

@@ -1,3 +1,5 @@
+import { Button } from "@/components/ui/button"
+
 type Option<T extends string> = { value: T; label: string }
 
 export function Segmented<T extends string>({
@@ -34,14 +36,25 @@ export function Segmented<T extends string>({
       {options.map((opt) => {
         const active = opt.value === value
         return (
-          <button
+          <Button
             key={opt.value}
             onClick={() => onChange(opt.value)}
-            className="relative z-10 h-9 rounded-lg px-5 text-sm font-semibold transition-colors"
-            style={{ color: active ? "#ffffff" : "var(--cipher-muted)" }}
+            variant="ghost"
+            className="relative z-10 h-9 rounded-lg px-5 text-sm font-semibold hover:bg-transparent dark:hover:bg-transparent"
+            style={{
+              color: active ? "#ffffff" : "var(--cipher-muted)",
+            }}
+            onMouseEnter={(e) => {
+              if (!active)
+                e.currentTarget.style.color = "var(--cipher-ink)"
+            }}
+            onMouseLeave={(e) => {
+              if (!active)
+                e.currentTarget.style.color = "var(--cipher-muted)"
+            }}
           >
             {opt.label}
-          </button>
+          </Button>
         )
       })}
     </div>

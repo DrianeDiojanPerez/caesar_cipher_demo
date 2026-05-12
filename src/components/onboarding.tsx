@@ -1,11 +1,18 @@
 import { useEffect, useMemo, useState } from "react"
 import { AnimatePresence, motion } from "motion/react"
-import { ChevronRight, QrCode, X } from "lucide-react"
+import { ChevronRight, QrCode } from "lucide-react"
 import { ALPHABET } from "@/lib/caesar"
 
-type Props = { onDone: () => void }
+import { Dialog, DialogContent } from "@/components/ui/dialog"
+import { Button } from "@/components/ui/button"
 
-export function Onboarding({ onDone }: Props) {
+type Props = {
+  open: boolean
+  onOpenChange: (open: boolean) => void
+  onDone: () => void
+}
+
+export function Onboarding({ open, onOpenChange, onDone }: Props) {
   const [step, setStep] = useState(0)
 
   const steps = [
@@ -27,40 +34,15 @@ export function Onboarding({ onDone }: Props) {
   ]
 
   return (
-    <motion.div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4"
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-    >
-      <motion.div
-        className="absolute inset-0 backdrop-blur-sm"
-        style={{ background: "rgba(14, 10, 26, 0.55)" }}
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
-        onClick={onDone}
-      />
-      <motion.div
-        initial={{ opacity: 0, y: 8, scale: 0.98 }}
-        animate={{ opacity: 1, y: 0, scale: 1 }}
-        exit={{ opacity: 0, y: 8, scale: 0.98 }}
-        transition={{ type: "spring", stiffness: 320, damping: 28 }}
-        className="relative w-full max-w-md overflow-hidden rounded-xl shadow-2xl"
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent
+        className="overflow-hidden p-0 gap-0"
         style={{
           background: "var(--cipher-card)",
-          border: "1px solid var(--cipher-line)",
+          color: "var(--cipher-ink)",
+          borderColor: "var(--cipher-line)",
         }}
       >
-        <button
-          onClick={onDone}
-          className="absolute top-3 right-3 z-20 grid h-7 w-7 place-items-center rounded-md transition"
-          style={{ color: "var(--cipher-muted)" }}
-          aria-label="Close tutorial"
-        >
-          <X className="h-4 w-4" />
-        </button>
-
         <div
           className="grid h-44 place-items-center overflow-hidden"
           style={{
@@ -117,11 +99,12 @@ export function Onboarding({ onDone }: Props) {
           <div className="mt-6 flex items-center justify-between">
             <div className="flex gap-1.5">
               {steps.map((_, i) => (
-                <button
+                <Button
                   key={i}
                   onClick={() => setStep(i)}
+                  variant="ghost"
                   aria-label={`Go to step ${i + 1}`}
-                  className="h-1.5 rounded-full transition-all"
+                  className="h-1.5 min-w-0 rounded-full p-0 hover:bg-transparent"
                   style={{
                     width: i === step ? 24 : 6,
                     background:
@@ -134,36 +117,36 @@ export function Onboarding({ onDone }: Props) {
             </div>
             <div className="flex gap-2">
               {step > 0 && (
-                <button
+                <Button
                   onClick={() => setStep(step - 1)}
-                  className="h-9 rounded-md px-3 text-sm font-medium transition"
+                  variant="ghost"
                   style={{ color: "var(--cipher-muted)" }}
                 >
                   Back
-                </button>
+                </Button>
               )}
               {step < 2 ? (
-                <button
+                <Button
                   onClick={() => setStep(step + 1)}
-                  className="flex h-9 items-center gap-1.5 rounded-md px-4 text-sm font-medium text-white transition"
+                  className="text-white"
                   style={{ background: "var(--cipher-accent)" }}
                 >
                   Next <ChevronRight className="h-3.5 w-3.5" />
-                </button>
+                </Button>
               ) : (
-                <button
+                <Button
                   onClick={onDone}
-                  className="h-9 rounded-md px-4 text-sm font-medium text-white transition"
+                  className="text-white"
                   style={{ background: "var(--cipher-accent)" }}
                 >
                   Get started
-                </button>
+                </Button>
               )}
             </div>
           </div>
         </div>
-      </motion.div>
-    </motion.div>
+      </DialogContent>
+    </Dialog>
   )
 }
 

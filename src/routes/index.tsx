@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useState } from "react"
 import { createFileRoute } from "@tanstack/react-router"
-import { AnimatePresence } from "motion/react"
 import {
   Check,
   Copy,
@@ -19,6 +18,8 @@ import { Onboarding } from "@/components/onboarding"
 import { CipherGame } from "@/components/cipher-game"
 import { Segmented } from "@/components/segmented"
 import { ThemePicker } from "@/components/theme-picker"
+import { Button } from "@/components/ui/button"
+import { Textarea } from "@/components/ui/textarea"
 import {
   applyTheme,
   DEFAULT_THEME,
@@ -74,11 +75,13 @@ function App() {
       }
     }
     const p = new URLSearchParams(location.search)
+    const cipher = p.get("c")
+    const defaultShift = cipher != null ? 0 : 3
     return {
-      text: p.get("c") ?? "Meet me at the old oak at midnight.",
+      text: cipher ?? "Meet me at the old oak at midnight.",
       shift: Math.max(
         0,
-        Math.min(25, parseInt(p.get("s") ?? "3", 10) || 0),
+        Math.min(25, parseInt(p.get("s") ?? String(defaultShift), 10) || 0),
       ),
       mode: (p.get("m") === "decode" ? "decode" : "encode") as Mode,
     }
@@ -159,23 +162,30 @@ function App() {
             </div>
           </div>
           <div className="flex items-center gap-1">
-            <button
+            <Button
               onClick={() => setGameOpen(true)}
-              className="flex h-9 items-center gap-1.5 rounded-lg px-3 text-xs font-semibold text-white transition-colors"
+              size="sm"
+              className="h-9 rounded-lg px-3 text-xs font-semibold text-white"
               style={{ background: "var(--cipher-accent)" }}
             >
               <Trophy className="h-3.5 w-3.5" /> Play
-            </button>
+            </Button>
             <ThemePicker value={theme} onChange={setTheme} dark={dark} />
-            <IconBtn
-              label="Tutorial"
+            <Button
+              variant="ghost"
+              size="icon"
+              aria-label="Tutorial"
               onClick={() => setShowOnboard(true)}
+              style={{ color: "var(--cipher-muted)" }}
             >
               <Sparkles className="h-4 w-4" />
-            </IconBtn>
-            <IconBtn
-              label="Toggle theme"
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              aria-label="Toggle theme"
               onClick={() => setDark((d) => !d)}
+              style={{ color: "var(--cipher-muted)" }}
             >
               <Moon
                 className="h-4 w-4 dark:hidden"
@@ -185,7 +195,7 @@ function App() {
                 className="hidden h-4 w-4 dark:block"
                 style={{ color: "var(--cipher-accent-2)" }}
               />
-            </IconBtn>
+            </Button>
           </div>
         </div>
       </header>
@@ -207,7 +217,7 @@ function App() {
             ]}
           />
           <p
-            className="font-mono text-xs font-medium tracking-[0.12em]"
+            className="caesar-caption text-xs tracking-[0.12em]"
             style={{ color: "var(--cipher-muted)" }}
           >
             {mode === "encode" ? "PLAINTEXT  →  CIPHER" : "CIPHER  →  PLAINTEXT"}
@@ -233,7 +243,7 @@ function App() {
               {text.length} chars
             </span>
           </div>
-          <textarea
+          <Textarea
             value={text}
             onChange={(e) => setText(e.target.value)}
             rows={3}
@@ -242,12 +252,13 @@ function App() {
                 ? "Type a message to encode…"
                 : "Paste a cipher to decode…"
             }
-            className="w-full resize-none rounded-xl px-3.5 py-3 text-[15px] leading-relaxed focus:outline-none"
+            className="resize-none rounded-xl px-3.5 py-3 text-[15px] leading-relaxed shadow-none focus-visible:ring-0 focus-visible:ring-offset-0"
             style={{
               background: "var(--cipher-card)",
-              border: "1px solid var(--cipher-line)",
+              borderColor: "var(--cipher-line)",
               color: "var(--cipher-ink)",
-              fontFamily: "'Geist Variable', ui-sans-serif, system-ui, sans-serif",
+              fontFamily:
+                "'Geist Variable', ui-sans-serif, system-ui, sans-serif",
             }}
           />
         </section>
@@ -266,11 +277,12 @@ function App() {
                 · shift {shift}
               </span>
             </label>
-            <button
+            <Button
               onClick={onCopy}
-              className="flex h-7 items-center gap-1.5 rounded-lg px-2.5 text-xs font-medium transition"
+              variant="outline"
+              size="xs"
               style={{
-                border: "1px solid var(--cipher-line)",
+                borderColor: "var(--cipher-line)",
                 background: "var(--cipher-card)",
                 color: "var(--cipher-ink)",
               }}
@@ -280,7 +292,7 @@ function App() {
                   <Check
                     className="h-3.5 w-3.5"
                     style={{ color: "var(--cipher-accent)" }}
-                  />{" "}
+                  />
                   Copied
                 </>
               ) : (
@@ -288,7 +300,7 @@ function App() {
                   <Copy className="h-3.5 w-3.5" /> Copy
                 </>
               )}
-            </button>
+            </Button>
           </div>
           <div
             className="min-h-[88px] rounded-xl px-3.5 py-3 font-mono text-[15px] leading-relaxed break-words whitespace-pre-wrap"
@@ -303,30 +315,27 @@ function App() {
         </section>
 
         <section>
-          <button
-            onClick={() => setQrOpen((o) => !o)}
+          <Button
+            onClick={() => setQrOpen(true)}
             disabled={!output.trim()}
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-xl text-sm font-semibold text-white transition-colors disabled:cursor-not-allowed disabled:opacity-40"
+            className="h-12 w-full rounded-xl text-sm font-semibold text-white"
             style={{ background: "var(--cipher-accent)" }}
           >
             <QrCode className="h-4 w-4" />
-            {qrOpen ? "Hide QR code" : "Generate QR code"}
-          </button>
+            Generate QR code
+          </Button>
 
-          <AnimatePresence>
-            {qrOpen && output.trim() && (
-              <QRPanel
-                shift={shift}
-                output={output}
-                onClose={() => setQrOpen(false)}
-              />
-            )}
-          </AnimatePresence>
+          <QRPanel
+            shift={shift}
+            output={output}
+            open={qrOpen && !!output.trim()}
+            onOpenChange={setQrOpen}
+          />
         </section>
 
         <section className="pt-4 pb-2 text-center">
           <p
-            className="font-mono text-[11px] tracking-wide"
+            className="caesar-caption text-[11px] tracking-wide"
             style={{ color: "var(--cipher-muted)" }}
           >
             shift 0 = identity · 13 = ROT13 · 25 = inverse-1
@@ -334,43 +343,13 @@ function App() {
         </section>
       </main>
 
-      <AnimatePresence>
-        {showOnboard && <Onboarding onDone={closeOnboard} />}
-      </AnimatePresence>
-      <AnimatePresence>
-        {gameOpen && <CipherGame onClose={() => setGameOpen(false)} />}
-      </AnimatePresence>
+      <Onboarding
+        open={showOnboard}
+        onOpenChange={setShowOnboard}
+        onDone={closeOnboard}
+      />
+      <CipherGame open={gameOpen} onOpenChange={setGameOpen} />
     </div>
   )
 }
 
-function IconBtn({
-  onClick,
-  children,
-  label,
-}: {
-  onClick: () => void
-  children: React.ReactNode
-  label: string
-}) {
-  return (
-    <button
-      aria-label={label}
-      onClick={onClick}
-      className="grid h-9 w-9 place-items-center rounded-lg transition-colors"
-      style={{
-        background: "transparent",
-        border: "1px solid transparent",
-        color: "var(--cipher-muted)",
-      }}
-      onMouseEnter={(e) => {
-        e.currentTarget.style.background = "var(--cipher-accent-soft)"
-      }}
-      onMouseLeave={(e) => {
-        e.currentTarget.style.background = "transparent"
-      }}
-    >
-      {children}
-    </button>
-  )
-}
