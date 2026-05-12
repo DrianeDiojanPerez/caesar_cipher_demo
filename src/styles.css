@@ -1,13 +1,18 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
-@import "@fontsource-variable/inter";
+@import "@fontsource-variable/geist";
+@import "@fontsource/jetbrains-mono/400.css";
+@import "@fontsource/jetbrains-mono/500.css";
+@import "@fontsource/jetbrains-mono/600.css";
+@import "@fontsource/jetbrains-mono/700.css";
 
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
     --font-heading: var(--font-sans);
-    --font-sans: 'Inter Variable', sans-serif;
+    --font-sans: 'Geist Variable', ui-sans-serif, system-ui, sans-serif;
+    --font-mono: 'JetBrains Mono', ui-monospace, monospace;
     --color-sidebar-ring: var(--sidebar-ring);
     --color-sidebar-border: var(--sidebar-border);
     --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -81,6 +86,18 @@
     --sidebar-accent-foreground: oklch(0.21 0.006 285.885);
     --sidebar-border: oklch(0.92 0.004 286.32);
     --sidebar-ring: oklch(0.705 0.015 286.067);
+
+    /* cipher palette */
+    --cipher-bg: #fdfaf6;
+    --cipher-bg-2: #fff5e8;
+    --cipher-card: #ffffff;
+    --cipher-ink: #1a1623;
+    --cipher-muted: #6b6478;
+    --cipher-line: #ecdfd0;
+    --cipher-accent: #7c3aed;
+    --cipher-accent-2: #f59e0b;
+    --cipher-accent-3: #ec4899;
+    --cipher-accent-soft: #f3e8ff;
 }
 
 .dark {
@@ -115,19 +132,154 @@
     --sidebar-accent-foreground: oklch(0.985 0 0);
     --sidebar-border: oklch(1 0 0 / 10%);
     --sidebar-ring: oklch(0.552 0.016 285.938);
+
+    /* cipher palette — dark */
+    --cipher-bg: #0e0a1a;
+    --cipher-bg-2: #1a0f2e;
+    --cipher-card: #160e29;
+    --cipher-ink: #f5f0ff;
+    --cipher-muted: #9d96b8;
+    --cipher-line: #2a1f44;
+    --cipher-accent: #a78bfa;
+    --cipher-accent-2: #fbbf24;
+    --cipher-accent-3: #f472b6;
+    --cipher-accent-soft: #2a1f44;
 }
 
 @layer base {
   * {
     @apply border-border outline-ring/50;
-    }
+  }
   body {
-    @apply bg-background text-foreground;
-    }
+    background: var(--cipher-bg);
+    color: var(--cipher-ink);
+    font-family: 'Geist Variable', ui-sans-serif, system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    font-feature-settings: 'ss01', 'cv11';
+    letter-spacing: -0.005em;
+  }
   button:not(:disabled), [role="button"]:not(:disabled) {
     cursor: pointer;
-    }
+  }
   html {
     @apply font-sans;
-    }
+  }
+  .font-mono, code, pre {
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    font-feature-settings: 'calt' 1, 'liga' 0;
+  }
+}
+
+/* ambient orbs */
+.blobs {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+  z-index: 0;
+}
+.blob {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(80px);
+  opacity: 0.18;
+}
+.blob.b1 {
+  width: 420px;
+  height: 420px;
+  background: var(--cipher-accent);
+  top: -160px;
+  left: -100px;
+}
+.blob.b3 {
+  width: 320px;
+  height: 320px;
+  background: var(--cipher-accent);
+  bottom: -120px;
+  right: -80px;
+  opacity: 0.12;
+}
+.dark .blob {
+  opacity: 0.1;
+}
+.dark .blob.b3 {
+  opacity: 0.08;
+}
+
+/* dial drag */
+.dial-wrap {
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+.dial-wrap.dragging {
+  cursor: grabbing;
+}
+
+/* shimmer */
+@keyframes cipher-shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+.shimmer-text {
+  background: linear-gradient(90deg, var(--cipher-ink) 0%, var(--cipher-accent) 50%, var(--cipher-ink) 100%);
+  background-size: 200% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: cipher-shimmer 3s linear infinite;
+}
+
+/* onboarding mini dial spin (SVG transform-origin in viewBox coords) */
+@keyframes dial-illo-spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+.dial-illo-ring {
+  animation: dial-illo-spin 14s linear infinite;
+  transform-origin: 160px 160px;
+}
+
+/* gentle wiggle for time warning */
+@keyframes cipher-wiggle {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-2px); }
+  75% { transform: translateX(2px); }
+}
+.wiggle {
+  animation: cipher-wiggle 0.25s ease-in-out infinite;
+}
+
+/* range slider styling */
+input[type="range"].cipher-range {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 6px;
+  border-radius: 999px;
+  background: var(--cipher-line);
+  outline: none;
+}
+input[type="range"].cipher-range::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--cipher-accent);
+  border: 2px solid var(--cipher-card);
+  box-shadow: 0 2px 6px rgba(124, 58, 237, 0.35);
+  cursor: pointer;
+  transition: transform 120ms ease-out;
+}
+input[type="range"].cipher-range::-webkit-slider-thumb:hover {
+  transform: scale(1.1);
+}
+input[type="range"].cipher-range::-moz-range-thumb {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--cipher-accent);
+  border: 2px solid var(--cipher-card);
+  box-shadow: 0 2px 6px rgba(124, 58, 237, 0.35);
+  cursor: pointer;
 }
