@@ -225,7 +225,9 @@ function App() {
         </section>
 
         <section className="flex flex-col items-center">
-          <CipherDial shift={shift} setShift={setShift} />
+          <div className="mx-auto w-full max-w-[280px]">
+            <CipherDial shift={shift} setShift={setShift} />
+          </div>
         </section>
 
         <section className="space-y-2">
