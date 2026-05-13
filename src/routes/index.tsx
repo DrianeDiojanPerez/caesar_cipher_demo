@@ -1,17 +1,11 @@
-import { useEffect, useMemo, useRef, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { createFileRoute, Link } from "@tanstack/react-router"
 import {
   Check,
-  ChevronRight,
   Copy,
   Crown,
-  Moon,
-  Palette,
   QrCode,
-  Radio,
   Settings,
-  Sparkles,
-  Sun,
   Trophy,
 } from "lucide-react"
 import { caesar } from "@/lib/caesar"
@@ -21,7 +15,6 @@ import { QRPanel } from "@/components/qr-panel"
 import { Onboarding } from "@/components/onboarding"
 import { CipherGame } from "@/components/cipher-game"
 import { Segmented } from "@/components/segmented"
-import { ThemePicker } from "@/components/theme-picker"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import {
@@ -97,31 +90,6 @@ function App() {
   const [copied, setCopied] = useState(false)
   const [qrOpen, setQrOpen] = useState(false)
   const [gameOpen, setGameOpen] = useState(false)
-  const [moreOpen, setMoreOpen] = useState(false)
-  const menuRef = useRef<HTMLDivElement | null>(null)
-  const toggleRef = useRef<HTMLButtonElement | null>(null)
-
-  useEffect(() => {
-    if (!moreOpen) return
-    const onPointerDown = (e: MouseEvent | TouchEvent) => {
-      const target = e.target as Node | null
-      if (!target) return
-      if (menuRef.current?.contains(target)) return
-      if (toggleRef.current?.contains(target)) return
-      setMoreOpen(false)
-    }
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setMoreOpen(false)
-    }
-    document.addEventListener("mousedown", onPointerDown)
-    document.addEventListener("touchstart", onPointerDown)
-    document.addEventListener("keydown", onKey)
-    return () => {
-      document.removeEventListener("mousedown", onPointerDown)
-      document.removeEventListener("touchstart", onPointerDown)
-      document.removeEventListener("keydown", onKey)
-    }
-  }, [moreOpen])
 
   const output = useMemo(
     () => caesar(text, shift, mode === "decode"),
@@ -156,215 +124,59 @@ function App() {
         <div className="blob b3" />
       </div>
 
-      {(() => {
-        const desktopExtras = (
-          <>
-            <Link to="/live">
-              <Button
-                variant="ghost"
-                size="icon"
-                aria-label="Live leaderboard"
-                style={{ color: "var(--cipher-muted)" }}
-              >
-                <Radio className="h-4 w-4" />
-              </Button>
-            </Link>
-            <ThemePicker value={theme} onChange={setTheme} dark={dark} />
+      <header className="sticky top-3 z-30 mx-auto w-fit max-w-[calc(100%-1.5rem)] px-3 sm:top-4 sm:px-4">
+        <div
+          className="flex h-14 max-w-[calc(100vw-1.5rem)] items-center gap-2 overflow-x-auto rounded-full px-3 backdrop-blur-xl shadow-lg [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+          style={{
+            background:
+              "color-mix(in oklab, var(--cipher-bg) 70%, transparent)",
+            border: "1px solid var(--cipher-line)",
+          }}
+        >
+          <Segmented<Mode>
+            value={mode}
+            onChange={(next) => {
+              setMode(next)
+              if (next === "decode") {
+                setText("")
+                setShift(0)
+              }
+            }}
+            options={[
+              { value: "encode", label: "Encode" },
+              { value: "decode", label: "Decode" },
+            ]}
+          />
+          <Button
+            onClick={() => setGameOpen(true)}
+            size="sm"
+            className="h-9 rounded-lg px-3 text-xs font-semibold text-white"
+            style={{ background: "var(--cipher-accent)" }}
+          >
+            <Trophy className="h-3.5 w-3.5" /> Play
+          </Button>
+          <Link to="/leaderboard">
             <Button
               variant="ghost"
               size="icon"
-              aria-label="Tutorial"
-              onClick={() => setShowOnboard(true)}
+              aria-label="Leaderboard"
               style={{ color: "var(--cipher-muted)" }}
             >
-              <Sparkles className="h-4 w-4" />
+              <Crown className="h-4 w-4" />
             </Button>
+          </Link>
+          <Link to="/settings">
             <Button
               variant="ghost"
               size="icon"
-              aria-label="Toggle theme"
-              onClick={() => setDark((d) => !d)}
+              aria-label="Settings"
               style={{ color: "var(--cipher-muted)" }}
             >
-              <Moon
-                className="h-4 w-4 dark:hidden"
-                style={{ color: "var(--cipher-accent)" }}
-              />
-              <Sun
-                className="hidden h-4 w-4 dark:block"
-                style={{ color: "var(--cipher-accent-2)" }}
-              />
+              <Settings className="h-4 w-4" />
             </Button>
-          </>
-        )
-        const pillStyle = {
-          background:
-            "color-mix(in oklab, var(--cipher-bg) 70%, transparent)",
-          border: "1px solid var(--cipher-line)",
-        } as const
-        const rowClass =
-          "flex h-11 w-full items-center gap-3 rounded-xl px-3 text-left text-sm font-medium transition-colors hover:bg-[var(--cipher-accent-soft)]"
-        return (
-          <header className="sticky top-3 z-30 mx-auto w-fit max-w-[calc(100%-1.5rem)] px-3 sm:top-4 sm:px-4">
-            <div
-              className="flex h-14 max-w-[calc(100vw-1.5rem)] items-center gap-2 overflow-x-auto rounded-full px-3 backdrop-blur-xl shadow-lg [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
-              style={pillStyle}
-            >
-              <Segmented<Mode>
-                value={mode}
-                onChange={(next) => {
-                  setMode(next)
-                  if (next === "decode") {
-                    setText("")
-                    setShift(0)
-                  }
-                }}
-                options={[
-                  { value: "encode", label: "Encode" },
-                  { value: "decode", label: "Decode" },
-                ]}
-              />
-              <Button
-                onClick={() => setGameOpen(true)}
-                size="sm"
-                className="h-9 rounded-lg px-3 text-xs font-semibold text-white"
-                style={{ background: "var(--cipher-accent)" }}
-              >
-                <Trophy className="h-3.5 w-3.5" /> Play
-              </Button>
-              <Link to="/leaderboard">
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  aria-label="Leaderboard"
-                  style={{ color: "var(--cipher-muted)" }}
-                >
-                  <Crown className="h-4 w-4" />
-                </Button>
-              </Link>
-              <div className="hidden items-center gap-2 sm:flex">
-                {desktopExtras}
-              </div>
-              <Button
-                ref={toggleRef}
-                variant="ghost"
-                size="icon"
-                aria-label={moreOpen ? "Close settings" : "Settings"}
-                aria-expanded={moreOpen}
-                onClick={() => setMoreOpen((v) => !v)}
-                className="sm:hidden"
-                style={{ color: "var(--cipher-muted)" }}
-              >
-                <Settings className="h-4 w-4" />
-              </Button>
-            </div>
-            {moreOpen && (
-              <div
-                ref={menuRef}
-                className="absolute left-1/2 top-full z-40 mt-2 w-64 -translate-x-1/2 rounded-2xl p-2 backdrop-blur-xl shadow-lg sm:hidden"
-                style={pillStyle}
-                role="menu"
-              >
-                <div
-                  className="px-3 pt-1 pb-2 font-mono text-[10px] tracking-[0.15em] uppercase"
-                  style={{ color: "var(--cipher-muted)" }}
-                >
-                  Settings
-                </div>
-                <Link
-                  to="/live"
-                  onClick={() => setMoreOpen(false)}
-                  className={rowClass}
-                  style={{ color: "var(--cipher-ink)" }}
-                  role="menuitem"
-                >
-                  <Radio
-                    className="h-4 w-4 shrink-0"
-                    style={{ color: "var(--cipher-muted)" }}
-                  />
-                  <span className="flex-1">Live leaderboard</span>
-                  <ChevronRight
-                    className="h-4 w-4 shrink-0"
-                    style={{ color: "var(--cipher-muted)" }}
-                  />
-                </Link>
-                <div
-                  className={rowClass}
-                  style={{ color: "var(--cipher-ink)" }}
-                >
-                  <Palette
-                    className="h-4 w-4 shrink-0"
-                    style={{ color: "var(--cipher-muted)" }}
-                  />
-                  <span className="flex-1">Theme</span>
-                  <ThemePicker
-                    value={theme}
-                    onChange={setTheme}
-                    dark={dark}
-                  />
-                </div>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setShowOnboard(true)
-                    setMoreOpen(false)
-                  }}
-                  className={rowClass}
-                  style={{ color: "var(--cipher-ink)" }}
-                  role="menuitem"
-                >
-                  <Sparkles
-                    className="h-4 w-4 shrink-0"
-                    style={{ color: "var(--cipher-muted)" }}
-                  />
-                  <span className="flex-1">Tutorial</span>
-                  <ChevronRight
-                    className="h-4 w-4 shrink-0"
-                    style={{ color: "var(--cipher-muted)" }}
-                  />
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setDark((d) => !d)}
-                  className={rowClass}
-                  style={{ color: "var(--cipher-ink)" }}
-                  role="menuitemcheckbox"
-                  aria-checked={dark}
-                >
-                  {dark ? (
-                    <Sun
-                      className="h-4 w-4 shrink-0"
-                      style={{ color: "var(--cipher-accent-2)" }}
-                    />
-                  ) : (
-                    <Moon
-                      className="h-4 w-4 shrink-0"
-                      style={{ color: "var(--cipher-accent)" }}
-                    />
-                  )}
-                  <span className="flex-1">
-                    {dark ? "Light mode" : "Dark mode"}
-                  </span>
-                  <span
-                    className="relative inline-block h-5 w-9 rounded-full transition-colors"
-                    style={{
-                      background: dark
-                        ? "var(--cipher-accent)"
-                        : "var(--cipher-line)",
-                    }}
-                    aria-hidden
-                  >
-                    <span
-                      className="absolute top-0.5 h-4 w-4 rounded-full bg-white shadow transition-all"
-                      style={{ left: dark ? "calc(100% - 1.125rem)" : "2px" }}
-                    />
-                  </span>
-                </button>
-              </div>
-            )}
-          </header>
-        )
-      })()}
+          </Link>
+        </div>
+      </header>
 
       <main className="relative z-10 mx-auto max-w-2xl space-y-7 px-5 py-8 sm:px-6 sm:py-10">
         <section className="flex flex-col items-center">
