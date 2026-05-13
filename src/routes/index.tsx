@@ -1,8 +1,9 @@
 import { useEffect, useMemo, useState } from "react"
-import { createFileRoute } from "@tanstack/react-router"
+import { createFileRoute, Link } from "@tanstack/react-router"
 import {
   Check,
   Copy,
+  Crown,
   Moon,
   QrCode,
   Sparkles,
@@ -157,6 +158,16 @@ function App() {
             >
               <Trophy className="h-3.5 w-3.5" /> Play
             </Button>
+            <Link to="/leaderboard">
+              <Button
+                variant="ghost"
+                size="icon"
+                aria-label="Leaderboard"
+                style={{ color: "var(--cipher-muted)" }}
+              >
+                <Crown className="h-4 w-4" />
+              </Button>
+            </Link>
             <ThemePicker value={theme} onChange={setTheme} dark={dark} />
             <Button
               variant="ghost"

@@ -16,6 +16,8 @@ import {
 } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { CipherDial } from "./cipher-dial"
+import { addResults } from "@/lib/api"
+import { getPlayerUserId } from "@/lib/leaderboard"
 
 type InputMode = "dial" | "slider"
 
@@ -66,6 +68,7 @@ export function CipherGame({ open, onOpenChange }: Props) {
   const [lastDelta, setLastDelta] = useState<number | null>(null)
   const [inputMode, setInputModeState] = useState<InputMode>("dial")
   const tickRef = useRef<ReturnType<typeof setInterval> | null>(null)
+  const postedRoundRef = useRef(0)
 
   useEffect(() => {
     setScore(parseInt(localStorage.getItem("caesar.score") || "0", 10))
@@ -95,6 +98,23 @@ export function CipherGame({ open, onOpenChange }: Props) {
     setPhase("playing")
     setRound((r) => r + 1)
   }, [cfg])
+
+  useEffect(() => {
+    if ((phase !== "won" && phase !== "lost") || !puzzle) return
+    if (postedRoundRef.current === round) return
+    postedRoundRef.current = round
+    const userId = getPlayerUserId()
+    if (userId == null) return
+    const timeSpent = Math.max(0, +(cfg.time - timeLeft).toFixed(1))
+    const isCorrect = phase === "won"
+    void addResults(userId, {
+      is_correct: isCorrect,
+      time_seconds: timeSpent,
+      points: isCorrect && lastDelta != null ? lastDelta : 0,
+    }).catch((err) => {
+      console.warn("[cipher-game] failed to post results", err)
+    })
+  }, [phase, puzzle, round, cfg.time, timeLeft, lastDelta])
 
   useEffect(() => {
     if (phase !== "playing") return

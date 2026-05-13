@@ -1,9 +1,12 @@
+import { useEffect, useState } from "react"
 import { HeadContent, Scripts, createRootRoute } from "@tanstack/react-router"
 import { TanStackRouterDevtoolsPanel } from "@tanstack/react-router-devtools"
 import { TanStackDevtools } from "@tanstack/react-devtools"
+import { Toaster } from "sileo"
 
 import appCss from "../styles.css?url"
 import { DEFAULT_THEME, THEMES } from "@/lib/themes"
+import { NameGate } from "@/components/name-gate"
 
 export const Route = createRootRoute({
   head: () => ({
@@ -54,6 +57,42 @@ try {
 } catch (e) {}
 `
 
+function ThemedToaster() {
+  const [theme, setTheme] = useState<"light" | "dark">("light")
+  useEffect(() => {
+    const read = () =>
+      setTheme(
+        document.documentElement.classList.contains("dark") ? "dark" : "light",
+      )
+    read()
+    const obs = new MutationObserver(read)
+    obs.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ["class"],
+    })
+    return () => obs.disconnect()
+  }, [])
+  return (
+    <Toaster
+      position="bottom-center"
+      theme={theme}
+      offset={20}
+      options={{
+        roundness: 14,
+        duration: 8000,
+        styles: {
+          title:
+            "font-semibold tracking-tight text-[var(--cipher-ink)] [font-family:'Geist_Variable',ui-sans-serif,system-ui,sans-serif]",
+          description:
+            "text-xs font-normal text-[var(--cipher-muted)] opacity-80 [font-family:'Geist_Variable',ui-sans-serif,system-ui,sans-serif]",
+          badge:
+            "bg-[var(--cipher-accent)] text-white ring-1 ring-[var(--cipher-accent)]/30",
+        },
+      }}
+    />
+  )
+}
+
 function RootDocument({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" suppressHydrationWarning>
@@ -66,6 +105,8 @@ function RootDocument({ children }: { children: React.ReactNode }) {
       </head>
       <body>
         {children}
+        <NameGate />
+        <ThemedToaster />
         <TanStackDevtools
           config={{ position: "bottom-right" }}
           plugins={[
