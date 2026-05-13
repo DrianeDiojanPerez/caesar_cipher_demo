@@ -4,8 +4,9 @@ import { Sparkles } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { ApiError, createUser } from "@/lib/api"
+import { ApiError, createUser, getUserScoreboard } from "@/lib/api"
 import {
+  clearPlayer,
   getPlayerName,
   getPlayerUserId,
   setPlayerName,
@@ -29,7 +30,23 @@ export function NameGate() {
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    if (needsRegistration()) setOpen(true)
+    if (needsRegistration()) {
+      setOpen(true)
+      return
+    }
+    const id = getPlayerUserId()
+    if (id == null) return
+    let cancelled = false
+    getUserScoreboard(id).catch((err) => {
+      if (cancelled) return
+      if (err instanceof ApiError && err.status === 404) {
+        clearPlayer()
+        setOpen(true)
+      }
+    })
+    return () => {
+      cancelled = true
+    }
   }, [])
 
   useEffect(() => {

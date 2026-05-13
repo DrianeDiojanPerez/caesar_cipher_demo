@@ -12,6 +12,7 @@ export type User = {
 export type Scoreboard = {
   score_id: number
   user_id: number
+  username: string
   total_questions: number
   total_correct: number
   total_wrong: number
