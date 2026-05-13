@@ -24,7 +24,9 @@ import {
   type LeaderboardEntry,
 } from "@/lib/leaderboard"
 
-export const Route = createFileRoute("/leaderboard")({ component: Leaderboard })
+export const Route = createFileRoute("/leaderboard")({
+  component: () => <LeaderboardView pollMs={POLL_MS} />,
+})
 
 const POLL_MS = Math.max(
   500,
@@ -67,7 +69,13 @@ function celebrate() {
 
 const TIER_COLORS = ["var(--cipher-accent)", "#cbd5e1", "#b45309"] as const
 
-function Leaderboard() {
+export function LeaderboardView({
+  pollMs,
+  live = false,
+}: {
+  pollMs: number
+  live?: boolean
+}) {
   const [entries, setEntries] = useState<Array<LeaderboardEntry>>([])
   const [loading, setLoading] = useState(true)
   const [playerId, setPlayerId] = useState<string>("")
@@ -105,12 +113,12 @@ function Leaderboard() {
       }
     }
     tick()
-    const id = setInterval(tick, POLL_MS)
+    const id = setInterval(tick, pollMs)
     return () => {
       cancelled = true
       clearInterval(id)
     }
-  }, [])
+  }, [pollMs])
 
   useEffect(() => {
     if (!entries.length || !playerId) return
@@ -181,8 +189,26 @@ function Leaderboard() {
             className="caesar-caption text-xs"
             style={{ color: "var(--cipher-ink)" }}
           >
-            Leaderboard
+            {live ? "Live" : "Leaderboard"}
           </div>
+          {live && (
+            <div
+              className="flex items-center gap-1.5 rounded-full px-2 py-0.5 text-[10px] font-bold tracking-[0.18em] uppercase"
+              style={{
+                background:
+                  "color-mix(in oklab, var(--cipher-accent-3) 18%, transparent)",
+                color: "var(--cipher-accent-3)",
+              }}
+            >
+              <motion.span
+                className="block h-1.5 w-1.5 rounded-full"
+                style={{ background: "var(--cipher-accent-3)" }}
+                animate={{ opacity: [1, 0.25, 1] }}
+                transition={{ duration: 1, repeat: Infinity }}
+              />
+              Live
+            </div>
+          )}
         </div>
       </header>
 
@@ -198,7 +224,7 @@ function Leaderboard() {
               color: "transparent",
             }}
           >
-            Leaderboard
+            {live ? "Live board" : "Leaderboard"}
           </h1>
         </section>
 
